@@ -9,15 +9,16 @@ dotenv.config();
 const app: Application = express();
 const port = !isNaN(Number(process.env.PORT)) ? Number(process.env.PORT) : 8000;
 
-app.use(
-  "*",
-  cors({
-    origin: ["*", "localhost"],
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    preflightContinue: true,
-    // optionsSuccessStatus: 204,
-  })
-);
+// app.use(
+//   "*",
+//   cors({
+//     origin: ["*", "localhost"],
+//     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+//     preflightContinue: true,
+//     // optionsSuccessStatus: 204,
+//   })
+// );
+app.use(cors());
 
 const server = app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
