@@ -1,48 +1,70 @@
-import express, { Request, Response, Application } from "express";
+import express, { Application } from "express";
 import dotenv from "dotenv";
-import { AccessToken } from "livekit-server-sdk";
+import { ExpressPeerServer, IClient } from "peer";
+import cors from "cors";
 
 //For env File
 dotenv.config();
 
 const app: Application = express();
-const port = process.env.PORT || 8000;
-const apiKey = process.env.LK_API_KEY || "livekit";
-const apiSecret = process.env.LK_API_SECRET || "secret";
+const port = !isNaN(Number(process.env.PORT)) ? Number(process.env.PORT) : 8000;
 
-const createToken = (
-  roomName: string,
-  participantName: string,
-  apiKey: string,
-  apiSecret: string
-) => {
-  // if this room doesn't exist, it'll be automatically created when the first
-  // client joins
-  //   const roomName = "quickstart-room";
+app.use(
+  "*",
+  cors({
+    origin: ["*", "localhost"],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    preflightContinue: true,
+    // optionsSuccessStatus: 204,
+  })
+);
 
-  // identifier to be used for participant.
-  // it's available as LocalParticipant.identity with livekit-client SDK
-  //   const participantName = "quickstart-username";
-
-  const at = new AccessToken(apiKey, apiSecret, {
-    identity: participantName,
-  });
-  at.addGrant({ roomJoin: true, room: roomName });
-
-  return at.toJwt();
-};
-
-app.get("/", (req: Request, res: Response) => {
-  res.send("Welcome to Express & TypeScript Server");
-});
-
-app.get("/getToken/:roomName/:participantName", (req, res) => {
-  const roomName = req.params.roomName;
-  const participantName = req.params.participantName;
-
-  res.send(createToken(roomName, participantName, apiKey, apiSecret));
-});
-
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+interface Room {
+  server: ReturnType<typeof ExpressPeerServer>;
+  connections: IClient[];
+}
+
+const rooms: Record<string, Room> = {};
+
+const setupRoom = (roomName: string) => {
+  const room: Room = (rooms[roomName] = {
+    server: ExpressPeerServer(server, { path: "/", allow_discovery: true }),
+    connections: [],
+  });
+
+  app.use(`/room/${roomName}`, room.server);
+
+  room.server.on("connection", (client) => {
+    console.log("Connecting", client.getId(), "to room", roomName);
+    room.connections.push(client);
+  });
+
+  room.server.on("disconnect", (client) => {
+    console.log("Disconnecting", client.getId(), "from room", roomName);
+    room.connections = room.connections.filter(
+      (other) => other.getId() !== client.getId()
+    );
+  });
+
+  return room;
+};
+
+app.post("/setup-room/:roomName", (req, res) => {
+  if (rooms[req.params.roomName] == null) {
+    console.log("Setting up", req.params.roomName);
+    rooms[req.params.roomName] = setupRoom(req.params.roomName);
+    res.send("init");
+  } else {
+    console.log("Room already running", req.params.roomName);
+    res.send("running");
+  }
+});
+
+// app.use("/room/:roomName", (req, _res, next) => {
+//   console.log("Calling", req.params.roomName, req.url);
+//   next();
+// });
