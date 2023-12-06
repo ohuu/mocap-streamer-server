@@ -2,22 +2,15 @@ import express, { Application } from "express";
 import dotenv from "dotenv";
 import { ExpressPeerServer, IClient } from "peer";
 import cors from "cors";
+import { WebSocketServer } from "ws";
 
 //For env File
 dotenv.config();
 
 const app: Application = express();
-const port = !isNaN(Number(process.env.PORT)) ? Number(process.env.PORT) : 8000;
+const envPort = Number(process.env.PORT);
+const port = !isNaN(envPort) ? envPort : 8000;
 
-// app.use(
-//   "*",
-//   cors({
-//     origin: ["*", "localhost"],
-//     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-//     preflightContinue: true,
-//     // optionsSuccessStatus: 204,
-//   })
-// );
 app.use(cors());
 
 const server = app.listen(port, () => {
@@ -32,8 +25,14 @@ interface Room {
 const rooms: Record<string, Room> = {};
 
 const setupRoom = (roomName: string) => {
+  let socket: WebSocketServer;
   const room: Room = (rooms[roomName] = {
-    server: ExpressPeerServer(server, { path: "/", allow_discovery: true }),
+    server: ExpressPeerServer(server, {
+      path: "/",
+      allow_discovery: true,
+      createWebSocketServer: (options) =>
+        (socket = new WebSocketServer(options)),
+    }),
     connections: [],
   });
 
@@ -49,6 +48,15 @@ const setupRoom = (roomName: string) => {
     room.connections = room.connections.filter(
       (other) => other.getId() !== client.getId()
     );
+    if (room.connections.length === 0) {
+      console.log("Disposing of", roomName);
+      const pathIndex = (app._router.stack as any[]).findIndex(
+        (layer) => layer.path === `/room/${roomName}`
+      );
+      app._router.stack.splice(pathIndex, pathIndex >= 0 ? 1 : 0);
+      socket?.close();
+      delete rooms[roomName];
+    }
   });
 
   return room;
@@ -64,8 +72,3 @@ app.post("/setup-room/:roomName", (req, res) => {
     res.send("running");
   }
 });
-
-// app.use("/room/:roomName", (req, _res, next) => {
-//   console.log("Calling", req.params.roomName, req.url);
-//   next();
-// });
