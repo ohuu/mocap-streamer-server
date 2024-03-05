@@ -62,7 +62,7 @@ const setupRoom = (roomName: string) => {
   return room;
 };
 
-app.post("/setup-room/:roomName", (req, res) => {
+app.get("/setup-room/:roomName", (req, res) => {
   if (rooms[req.params.roomName] == null) {
     console.log("Setting up", req.params.roomName);
     rooms[req.params.roomName] = setupRoom(req.params.roomName);
