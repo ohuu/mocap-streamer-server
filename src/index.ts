@@ -30,8 +30,10 @@ const setupRoom = (roomName: string) => {
     server: ExpressPeerServer(server, {
       path: "/",
       allow_discovery: true,
-      createWebSocketServer: (options) =>
-        (socket = new WebSocketServer(options)),
+      createWebSocketServer: (options) => {
+        console.log(options);
+        return (socket = new WebSocketServer(options));
+      },
     }),
     connections: [],
   });
@@ -61,11 +63,6 @@ const setupRoom = (roomName: string) => {
 
   return room;
 };
-
-app.get("/", (req, res) => {
-  console.log("hello");
-  res.send("hello");
-});
 
 app.post("/setup-room/:roomName", (req, res) => {
   if (rooms[req.params.roomName] == null) {
