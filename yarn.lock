@@ -2023,7 +2023,7 @@ __metadata:
     cors: ^2.8.5
     dotenv: ^16.3.1
     express: ^4.18.2
-    peer: ^1.0.1
+    peer: ^1.0.2
     pm2: ^5.3.0
     ts-node-dev: ^2.0.0
     typescript: ^5.2.2
@@ -2291,9 +2291,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"peer@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "peer@npm:1.0.1"
+"peer@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "peer@npm:1.0.2"
   dependencies:
     "@types/express": ^4.17.3
     "@types/ws": ^7.2.3 || ^8.0.0
@@ -2304,7 +2304,7 @@ __metadata:
     yargs: ^17.6.2
   bin:
     peerjs: dist/bin/peerjs.js
-  checksum: 10792acaa946be4b23cf5669b4192275fa36fd18cee9f5c3907346c6a727fcbd9203d16d5315e63a6f78d3484bf83c5322893b0dd89205de8e8f6bab2fb20f0c
+  checksum: 7f362c0afeee14cd3df7a52319eb0ae7dbbd961c16e1d99344e34309e216a4ebf4e1935bae96374e988c9c0531e8f065c65d3cd9558e699d38428685fdc9e88d
   languageName: node
   linkType: hard
 
