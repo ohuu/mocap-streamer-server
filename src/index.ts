@@ -50,10 +50,10 @@ const setupRoom = (roomName: string) => {
     );
     if (room.connections.length === 0) {
       console.log("Disposing of", roomName);
-      const pathIndex = (app._router.stack as any[]).findIndex(
-        (layer) => layer.path === `/room/${roomName}`
+      app._router.stack = (app._router.stack as any[]).filter(
+        (layer) =>
+          layer.path == null || !layer.path.startsWith(`/room/${roomName}`)
       );
-      app._router.stack.splice(pathIndex, pathIndex >= 0 ? 1 : 0);
       socket?.close();
       delete rooms[roomName];
     }
