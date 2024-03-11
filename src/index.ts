@@ -30,10 +30,8 @@ const setupRoom = (roomName: string) => {
     server: ExpressPeerServer(server, {
       path: "/",
       allow_discovery: true,
-      createWebSocketServer: (options) => {
-        console.log(options);
-        return (socket = new WebSocketServer(options));
-      },
+      createWebSocketServer: (options) =>
+        (socket = new WebSocketServer(options)),
     }),
     connections: [],
   });
