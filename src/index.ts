@@ -29,7 +29,6 @@ const setupRoom = (roomName: string) => {
   const room: Room = (rooms[roomName] = {
     server: ExpressPeerServer(server, {
       path: "/",
-      allow_discovery: true,
       createWebSocketServer: (options) =>
         (socket = new WebSocketServer(options)),
     }),
@@ -72,3 +71,11 @@ app.post("/setup-room/:roomName", (req, res) => {
     res.send("running");
   }
 });
+
+app.get("/room/connections/:roomName", (req, res) =>
+  res.json(
+    rooms[req.params.roomName]?.connections.map((connection) =>
+      connection.getId()
+    ) ?? "No room setup!"
+  )
+);

@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "tsnd --respawn src/index.ts",
     "build": "npx tsc",
-    "start": "node dist/index.js",
-    "dev": "tsnd --respawn src/index.ts"
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
