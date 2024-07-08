@@ -11,7 +11,7 @@ const app: Application = express();
 const envPort = Number(process.env.PORT);
 const port = !isNaN(envPort) ? envPort : 8000;
 
-app.use(cors());
+app.use(cors({ origin: "*" }));
 
 const server = app.listen(port, () => {
   console.log(`Server running on port ${port}`);
