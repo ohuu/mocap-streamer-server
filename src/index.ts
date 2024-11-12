@@ -10,6 +10,7 @@ dotenv.config();
 const app: Application = express();
 const envPort = Number(process.env.PORT);
 const port = !isNaN(envPort) ? envPort : 8000;
+const roomDownTimeMs = 5000;
 
 app.use(cors({ origin: "*" }));
 
@@ -23,6 +24,7 @@ interface Room {
 }
 
 const rooms: Record<string, Room> = {};
+const roomDisposedTimes: Record<string, number> = {};
 
 const setupRoom = (roomName: string) => {
   let socket: WebSocketServer;
@@ -55,6 +57,7 @@ const setupRoom = (roomName: string) => {
       );
       socket?.close();
       delete rooms[roomName];
+      roomDisposedTimes[roomName] = Date.now();
     }
   });
 
@@ -62,7 +65,12 @@ const setupRoom = (roomName: string) => {
 };
 
 app.post("/setup-room/:roomName", (req, res) => {
-  if (rooms[req.params.roomName] == null) {
+  if (
+    roomDisposedTimes[req.params.roomName] != null &&
+    roomDisposedTimes[req.params.roomName] + roomDownTimeMs > Date.now()
+  ) {
+    res.status(409).send("Room closed recently. Please try again later");
+  } else if (rooms[req.params.roomName] == null) {
     console.log("Setting up", req.params.roomName);
     rooms[req.params.roomName] = setupRoom(req.params.roomName);
     res.send("init");
